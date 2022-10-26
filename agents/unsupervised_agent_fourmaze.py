@@ -6,6 +6,7 @@ import torch
 import torch.nn.functional as F
 import torch.nn as nn
 
+
 class Agent_Fourmaze:
 
     def __init__(self, env1, env2, env3, env4, args=None):
@@ -48,7 +49,8 @@ class Agent_Fourmaze:
         self.encoder = EncoderDMC(latent_dim=self.agent_dim+self.wall_dim).to(self.device)
 
         # Mlp Prediction Functions
-        self.agent_forward_state_action = TransitionModel(self.agent_dim+self.wall_dim, action_dim=self.action_dim, scale=self.sa_transition_scaler,
+        self.agent_forward_state_action = TransitionModel(self.agent_dim+self.wall_dim, action_dim=self.action_dim,
+                                                          scale=self.sa_transition_scaler,
                                                                prediction_dim=self.agent_dim).to(self.device)
         self.wall_stationary_forward_state = TransitionModel(self.wall_dim, action_dim=0, scale=self.sa_transition_scaler,
                                                              prediction_dim=self.wall_dim).to(self.device)
@@ -87,7 +89,8 @@ class Agent_Fourmaze:
         next_latent_wall = next_latent[:, 2].unsqueeze(1)
 
         # Forward prediction state + action
-        state_action_prediction = self.agent_forward_state_action(torch.cat((latent_agent_detached, latent_wall_detached, ACTION), 1))
+        state_action_prediction = self.agent_forward_state_action(torch.cat((latent_agent_detached,
+                                                                             latent_wall_detached, ACTION), 1))
 
         # Forward prediction state
         state_prediction_wall = self.wall_stationary_forward_state(latent_wall)

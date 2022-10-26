@@ -8,16 +8,7 @@ from utils import to_numpy
 
 def print_graph_with_same_agent_states(agent, args=None, run_directory=str, transitions=True, width=5.512, height=4, blue_ordered=False):
 
-    if args.format=='pgf':
-        matplotlib.use("pgf")
-        matplotlib.rcParams.update({
-            "pgf.texsystem": "pdflatex",
-            'font.family': 'serif',
-            'font.serif': 'Times',
-            'text.usetex': True,
-            'pgf.rcfonts': False,
-        })
-    elif args.format=='pdf':
+    if args.format=='pdf':
         matplotlib.use('pdf')
         plt.rc('font', family='serif', serif='Times')
         plt.rc('text', usetex=True)
@@ -238,8 +229,6 @@ def print_graph_with_same_agent_states(agent, args=None, run_directory=str, tran
         plt.show()
     if args.format=='png':
         plt.savefig(str(run_directory) + '/same_agent_states' + str(agent.iterations) + '_iterations.png', bbox_inches='tight')
-    elif args.format=='pgf':
-        plt.savefig(str(run_directory) + '/same_agent_states' + str(agent.iterations) + '_iterations.pgf', bbox_inches='tight')
     elif args.format=='pdf':
         plt.savefig(str(run_directory) + '/same_agent_states' + str(agent.iterations) + '_iterations.pdf', bbox_inches='tight')
     plt.close()
@@ -248,18 +237,7 @@ def print_graph_with_same_agent_states(agent, args=None, run_directory=str, tran
 def print_featuremaps_halfagent_halfball(agent, args=None, run_directory=str, width_inches=5.5107/2,
                                         h_inches=4, extra_name='', markersize=3):
 
-    # TODO make version with 1 state
-    format = args.format
-    if format=='pgf':
-        matplotlib.use("pgf")
-        matplotlib.rcParams.update({
-            "pgf.texsystem": "pdflatex",
-            'font.family': 'serif',
-            'font.serif': 'Times',
-            'text.usetex': True,
-            'pgf.rcfonts': False,
-        })
-    elif format=='pdf':
+    if args.format=='pdf':
         matplotlib.use('pdf')
         plt.rc('font', family='serif', serif='Times')
         plt.rc('text', usetex=True)
@@ -464,11 +442,9 @@ def print_featuremaps_halfagent_halfball(agent, args=None, run_directory=str, wi
     if args.showplot:
         plt.show()
     else:
-        if not (format=='pgf' or format=='pdf'):
+        if args.format == 'png':
             plt.savefig(str(run_directory)+'/different_ball_states'+str(agent.iterations)+extra_name+'_iterations.png', bbox_inches='tight')
-        elif format=='pgf':
-            plt.savefig(str(run_directory)+'/different_ball_states'+str(agent.iterations)+extra_name+'_iterations.pgf', bbox_inches='tight')
-        elif format=='pdf':
+        elif args.format=='pdf':
             plt.savefig(str(run_directory)+'/different_ball_states'+str(agent.iterations)+extra_name+'_iterations.pdf', bbox_inches='tight')
         plt.close()
 
@@ -480,8 +456,8 @@ def print_graph_with_all_states_and_transitions_3D_fourmaze(agent, device, encod
     fig = plt.figure()
     ax = plt.axes(projection='3d')
 
-    ball_size = 2                # If single picture , ball_size = 2-4
-    line_size = 1              # If single picture, line_size = 1
+    node_size = 2
+    edge_size = 1
 
     encoded_batch = encoder(batch_with_every_state1)
     encoded_batch2 = encoder(batch_with_every_state2)
@@ -505,7 +481,7 @@ def print_graph_with_all_states_and_transitions_3D_fourmaze(agent, device, encod
         action4 = F.one_hot(action4, num_classes=4)
 
     for i in range(len(encoded_batch)):
-        ax.scatter3D(encoded_batch_numpy[i][0], encoded_batch_numpy[i][1], encoded_batch_numpy[i][2], color='red', s=ball_size )
+        ax.scatter3D(encoded_batch_numpy[i][0], encoded_batch_numpy[i][1], encoded_batch_numpy[i][2], color='red', s=node_size )
         # Collect the states after each action
         state_after_action_0 = to_numpy(transition_function(torch.cat((encoded_batch[i], action1[0].to(device)), 0)) + delta * encoded_batch[i][0:2])
         state_after_action_1 = to_numpy(
@@ -517,19 +493,19 @@ def print_graph_with_all_states_and_transitions_3D_fourmaze(agent, device, encod
         # Plot every action's transition as a line from each state
         ax.plot3D([encoded_batch_numpy[i][0], state_after_action_0[0]],
                   [encoded_batch_numpy[i][1], state_after_action_0[1]],
-                  [encoded_batch_numpy[i][2], encoded_batch_numpy[i][2]], 'red', alpha=0.3, linewidth=line_size)
+                  [encoded_batch_numpy[i][2], encoded_batch_numpy[i][2]], 'red', alpha=0.3, linewidth=edge_size)
         ax.plot3D([encoded_batch_numpy[i][0], state_after_action_1[0]],
                   [encoded_batch_numpy[i][1], state_after_action_1[1]],
-                  [encoded_batch_numpy[i][2], encoded_batch_numpy[i][2]], 'green', alpha=0.3, linewidth=line_size)
+                  [encoded_batch_numpy[i][2], encoded_batch_numpy[i][2]], 'green', alpha=0.3, linewidth=edge_size)
         ax.plot3D([encoded_batch_numpy[i][0], state_after_action_2[0]],
                   [encoded_batch_numpy[i][1], state_after_action_2[1]],
-                  [encoded_batch_numpy[i][2], encoded_batch_numpy[i][2]], 'blue', alpha=0.3, linewidth=line_size)
+                  [encoded_batch_numpy[i][2], encoded_batch_numpy[i][2]], 'blue', alpha=0.3, linewidth=edge_size)
         ax.plot3D([encoded_batch_numpy[i][0], state_after_action_3[0]],
                   [encoded_batch_numpy[i][1], state_after_action_3[1]],
-                  [encoded_batch_numpy[i][2], encoded_batch_numpy[i][2]], 'yellow', alpha=0.3, linewidth=line_size)
+                  [encoded_batch_numpy[i][2], encoded_batch_numpy[i][2]], 'yellow', alpha=0.3, linewidth=edge_size)
 
     for i in range(len(encoded_batch2)):
-        ax.scatter3D(encoded_batch_numpy2[i][0], encoded_batch_numpy2[i][1], encoded_batch_numpy2[i][2], color='green', s=ball_size)
+        ax.scatter3D(encoded_batch_numpy2[i][0], encoded_batch_numpy2[i][1], encoded_batch_numpy2[i][2], color='green', s=node_size)
         state_after_action_0 = to_numpy(
             transition_function(torch.cat((encoded_batch2[i], action1[0].to(device)), 0)) + delta *
             encoded_batch2[i][0:2])
@@ -543,13 +519,13 @@ def print_graph_with_all_states_and_transitions_3D_fourmaze(agent, device, encod
             transition_function(torch.cat((encoded_batch2[i], action4[0].to(device)), 0)) + delta *
             encoded_batch2[i][0:2])
         # Plot every action's transition as a line from each state
-        ax.plot3D([encoded_batch_numpy2[i][0], state_after_action_0[0]], [encoded_batch_numpy2[i][1], state_after_action_0[1]], [encoded_batch_numpy2[i][2], encoded_batch_numpy2[i][2]], 'red', alpha=0.3, linewidth=line_size)
-        ax.plot3D([encoded_batch_numpy2[i][0], state_after_action_1[0]], [encoded_batch_numpy2[i][1], state_after_action_1[1]], [encoded_batch_numpy2[i][2], encoded_batch_numpy2[i][2]], 'green', alpha=0.3, linewidth=line_size)
-        ax.plot3D([encoded_batch_numpy2[i][0], state_after_action_2[0]], [encoded_batch_numpy2[i][1], state_after_action_2[1]], [encoded_batch_numpy2[i][2], encoded_batch_numpy2[i][2]], 'blue', alpha=0.3, linewidth=line_size)
-        ax.plot3D([encoded_batch_numpy2[i][0], state_after_action_3[0]], [encoded_batch_numpy2[i][1], state_after_action_3[1]], [encoded_batch_numpy2[i][2], encoded_batch_numpy2[i][2]], 'yellow', alpha=0.3, linewidth=line_size)
+        ax.plot3D([encoded_batch_numpy2[i][0], state_after_action_0[0]], [encoded_batch_numpy2[i][1], state_after_action_0[1]], [encoded_batch_numpy2[i][2], encoded_batch_numpy2[i][2]], 'red', alpha=0.3, linewidth=edge_size)
+        ax.plot3D([encoded_batch_numpy2[i][0], state_after_action_1[0]], [encoded_batch_numpy2[i][1], state_after_action_1[1]], [encoded_batch_numpy2[i][2], encoded_batch_numpy2[i][2]], 'green', alpha=0.3, linewidth=edge_size)
+        ax.plot3D([encoded_batch_numpy2[i][0], state_after_action_2[0]], [encoded_batch_numpy2[i][1], state_after_action_2[1]], [encoded_batch_numpy2[i][2], encoded_batch_numpy2[i][2]], 'blue', alpha=0.3, linewidth=edge_size)
+        ax.plot3D([encoded_batch_numpy2[i][0], state_after_action_3[0]], [encoded_batch_numpy2[i][1], state_after_action_3[1]], [encoded_batch_numpy2[i][2], encoded_batch_numpy2[i][2]], 'yellow', alpha=0.3, linewidth=edge_size)
 
     for i in range(len(encoded_batch3)):
-        ax.scatter3D(encoded_batch_numpy3[i][0], encoded_batch_numpy3[i][1], encoded_batch_numpy3[i][2], color='blue', s=ball_size)
+        ax.scatter3D(encoded_batch_numpy3[i][0], encoded_batch_numpy3[i][1], encoded_batch_numpy3[i][2], color='blue', s=node_size)
         state_after_action_0 = to_numpy(
             transition_function(torch.cat((encoded_batch3[i], action1[0].to(device)), 0)) + delta *
             encoded_batch3[i][0:2])
@@ -564,13 +540,13 @@ def print_graph_with_all_states_and_transitions_3D_fourmaze(agent, device, encod
             encoded_batch3[i][0:2])
         # Plot every action's transition as a line from each state
 
-        ax.plot3D([encoded_batch_numpy3[i][0], state_after_action_0[0]], [encoded_batch_numpy3[i][1], state_after_action_0[1]], [encoded_batch_numpy3[i][2], encoded_batch_numpy3[i][2]], 'red', alpha=0.3, linewidth=line_size)
-        ax.plot3D([encoded_batch_numpy3[i][0], state_after_action_1[0]], [encoded_batch_numpy3[i][1], state_after_action_1[1]], [encoded_batch_numpy3[i][2], encoded_batch_numpy3[i][2]], 'green', alpha=0.3, linewidth=line_size)
-        ax.plot3D([encoded_batch_numpy3[i][0], state_after_action_2[0]], [encoded_batch_numpy3[i][1], state_after_action_2[1]], [encoded_batch_numpy3[i][2], encoded_batch_numpy3[i][2]], 'blue', alpha=0.3, linewidth=line_size)
-        ax.plot3D([encoded_batch_numpy3[i][0], state_after_action_3[0]], [encoded_batch_numpy3[i][1], state_after_action_3[1]], [encoded_batch_numpy3[i][2], encoded_batch_numpy3[i][2]], 'yellow', alpha=0.3, linewidth=line_size)
+        ax.plot3D([encoded_batch_numpy3[i][0], state_after_action_0[0]], [encoded_batch_numpy3[i][1], state_after_action_0[1]], [encoded_batch_numpy3[i][2], encoded_batch_numpy3[i][2]], 'red', alpha=0.3, linewidth=edge_size)
+        ax.plot3D([encoded_batch_numpy3[i][0], state_after_action_1[0]], [encoded_batch_numpy3[i][1], state_after_action_1[1]], [encoded_batch_numpy3[i][2], encoded_batch_numpy3[i][2]], 'green', alpha=0.3, linewidth=edge_size)
+        ax.plot3D([encoded_batch_numpy3[i][0], state_after_action_2[0]], [encoded_batch_numpy3[i][1], state_after_action_2[1]], [encoded_batch_numpy3[i][2], encoded_batch_numpy3[i][2]], 'blue', alpha=0.3, linewidth=edge_size)
+        ax.plot3D([encoded_batch_numpy3[i][0], state_after_action_3[0]], [encoded_batch_numpy3[i][1], state_after_action_3[1]], [encoded_batch_numpy3[i][2], encoded_batch_numpy3[i][2]], 'yellow', alpha=0.3, linewidth=edge_size)
 
     for i in range(len(encoded_batch4)):
-        ax.scatter3D(encoded_batch_numpy4[i][0], encoded_batch_numpy4[i][1], encoded_batch_numpy4[i][2], color='orange', s=ball_size)
+        ax.scatter3D(encoded_batch_numpy4[i][0], encoded_batch_numpy4[i][1], encoded_batch_numpy4[i][2], color='orange', s=node_size)
         state_after_action_0 = to_numpy(
             transition_function(torch.cat((encoded_batch4[i], action1[0].to(device)), 0)) + delta *
             encoded_batch4[i][0:2])
@@ -585,10 +561,10 @@ def print_graph_with_all_states_and_transitions_3D_fourmaze(agent, device, encod
             encoded_batch4[i][0:2])
         # Plot every action's transition as a line from each state
 
-        ax.plot3D([encoded_batch_numpy4[i][0], state_after_action_0[0]], [encoded_batch_numpy4[i][1], state_after_action_0[1]], [encoded_batch_numpy4[i][2], encoded_batch_numpy4[i][2]], 'red', alpha=0.3, linewidth=line_size)
-        ax.plot3D([encoded_batch_numpy4[i][0], state_after_action_1[0]], [encoded_batch_numpy4[i][1], state_after_action_1[1]], [encoded_batch_numpy4[i][2], encoded_batch_numpy4[i][2]], 'green', alpha=0.3, linewidth=line_size)
-        ax.plot3D([encoded_batch_numpy4[i][0], state_after_action_2[0]], [encoded_batch_numpy4[i][1], state_after_action_2[1]], [encoded_batch_numpy4[i][2], encoded_batch_numpy4[i][2]], 'blue', alpha=0.3, linewidth=line_size)
-        ax.plot3D([encoded_batch_numpy4[i][0], state_after_action_3[0]], [encoded_batch_numpy4[i][1], state_after_action_3[1]], [encoded_batch_numpy4[i][2], encoded_batch_numpy4[i][2]], 'yellow', alpha=0.3, linewidth=line_size)
+        ax.plot3D([encoded_batch_numpy4[i][0], state_after_action_0[0]], [encoded_batch_numpy4[i][1], state_after_action_0[1]], [encoded_batch_numpy4[i][2], encoded_batch_numpy4[i][2]], 'red', alpha=0.3, linewidth=edge_size)
+        ax.plot3D([encoded_batch_numpy4[i][0], state_after_action_1[0]], [encoded_batch_numpy4[i][1], state_after_action_1[1]], [encoded_batch_numpy4[i][2], encoded_batch_numpy4[i][2]], 'green', alpha=0.3, linewidth=edge_size)
+        ax.plot3D([encoded_batch_numpy4[i][0], state_after_action_2[0]], [encoded_batch_numpy4[i][1], state_after_action_2[1]], [encoded_batch_numpy4[i][2], encoded_batch_numpy4[i][2]], 'blue', alpha=0.3, linewidth=edge_size)
+        ax.plot3D([encoded_batch_numpy4[i][0], state_after_action_3[0]], [encoded_batch_numpy4[i][1], state_after_action_3[1]], [encoded_batch_numpy4[i][2], encoded_batch_numpy4[i][2]], 'yellow', alpha=0.3, linewidth=edge_size)
     ax.set_xlim(-1.1, 1.1)
     ax.set_ylim(-1.1, 1.1)
     ax.set_zlim(-1.1, 1.1)
@@ -599,16 +575,14 @@ def print_graph_with_all_states_and_transitions_3D_fourmaze(agent, device, encod
     # ax.set_xlabel('Controllable latent 1')
     # ax.set_ylabel('Controllable latent 2')
     # ax.set_zlabel('Uncontrollable latent')
+
     ax.view_init(elev=8)
-    fig.set_size_inches(w=5.50107/2, h=3)    # If single picture, set size to 5.50107
+    fig.set_size_inches(w=5.50107/2, h=3)
 
     if args.showplot:
         plt.show()
     else:
-        if args.format == 'pgf':
-            plt.savefig(str(run_directory) + '/different_ball_states' + str(agent.iterations) + '_iterations.pgf',
-                        bbox_inches='tight')
-        elif args.format =='png':
+        if args.format =='png':
             plt.savefig(str(run_directory)+'/different_ball_states'+str(agent.iterations)+'_iterations.png')
         elif args.format =='pdf':
             plt.savefig(str(run_directory)+'/different_ball_states'+str(agent.iterations)+'_iterations.pdf')

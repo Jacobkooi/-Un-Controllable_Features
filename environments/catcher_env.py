@@ -4,15 +4,6 @@ import numpy as np
 
 from base_classes.environment import Environment
 
-# import matplotlib
-# # matplotlib.use('qt5agg')
-# from mpl_toolkits.axes_grid1 import host_subplot
-# import mpl_toolkits.axisartist as AA
-# import matplotlib.pyplot as plt
-#
-# # plt.switch_backend('agg')  # For remote servers
-# import copy
-
 
 class Catcher(Environment):
     VALIDATION_MODE = 0
@@ -34,7 +25,7 @@ class Catcher(Environment):
         self.x = np.random.randint(self._width - self._width_paddle + 1)
         self.y = self._height-1
 
-        self._nx_block = 8  # self._width#2 #number of different x positions of the falling blocks
+        self._nx_block = 8   # number of different x positions of the falling blocks
         self._higher_dim_obs = kwargs["higher_dim_obs"]
         self._reverse = kwargs["reverse"]
 
@@ -43,7 +34,7 @@ class Catcher(Environment):
         else:
             rand = np.random.randint(self._nx_block)  # random selection of the pos for falling block
             self._x_block = rand * (
-                        (self._width - 1) // (self._nx_block - 1))  # traduction in a number in [0,self._width] of rand
+                        (self._width - 1) // (self._nx_block - 1))
 
     def reset(self, mode):
         if mode == Catcher.VALIDATION_MODE:
@@ -85,7 +76,7 @@ class Catcher(Environment):
 
         self.y = self.y - 1
 
-        if (self.y == 0 and self.x > self._x_block - 1 - self._width_paddle and self.x <= self._x_block + 1):
+        if self.y == 0 and self.x > self._x_block - 1 - self._width_paddle and self.x <= self._x_block + 1:
             self.reward = 1
         elif self.y == 0:
             self.reward = -1
@@ -159,17 +150,12 @@ class Catcher(Environment):
             paddle = np.array([[0.5, 0.95, 1, 1, 1, 0.95, 0.5],
                                [0.9, 1, 1, 1, 1, 1, 0.9],
                                [0., 0., 0, 0, 0, 0., 0.]])
-            # paddle = np.array([[0.4, 0.45, 0.6, 0.6, 0.6, 0.45, 0.4],
-            #                    [0.5, 0.6, 0.6, 0.6, 0.6, 0.6, 0.5],
-            #                    [0., 0., 0, 0, 0, 0., 0.]])
 
             obs[y_t - 2:y_t + 3, x_block_t - 3:x_block_t + 4] = ball
             obs[3:6, x_t - 3:x_t + 4] = paddle
 
         if self._reverse:
             obs = -obs
-            # plt.imshow(np.flip(obs,axis=0), cmap='gray_r')
-            # plt.show()
 
         return obs
 

@@ -7,7 +7,7 @@ from utils import get_same_agent_states, to_numpy
 from replaybuffer import ReplayBuffer
 import torch.nn as nn
 import torch.nn.functional as F
-from losses import compute_entropy_loss_featuremaps_randompixels, compute_entropy_loss_trajectory
+from losses import compute_entropy_loss_featuremaps_randompixels, compute_entropy_loss_trajectory, compute_entropy_loss_multiple_trajectories
 
 
 class Agent_Modes_Pathfinding:
@@ -44,9 +44,9 @@ class Agent_Modes_Pathfinding:
         self.loss = nn.MSELoss()
         self.depth = args.depth
         self.planning = False
-        self.randombuffer_only = args.randombuffer_only
         self.breadth = args.breadth
         self.neuron_dim = args.neuron_dim
+        self.feature_entropy_int = args.entropy_pixels
 
         self.agent_dim = 2
         self.batch_size = args.batch_size
@@ -155,8 +155,9 @@ class Agent_Modes_Pathfinding:
         loss_wall_predictor = self.loss(state_prediction_wall, next_wall_features_flattened)
 
         # Entropy loss to avoid representation collapse
-        loss_entropy = compute_entropy_loss_featuremaps_randompixels(self, STATE)
-        loss_entropy += compute_entropy_loss_trajectory(self)
+        loss_entropy = 0.5*compute_entropy_loss_featuremaps_randompixels(self, STATE)
+        # loss_entropy += 0.5*compute_entropy_loss_trajectory(self)
+        loss_entropy += 0.5*compute_entropy_loss_multiple_trajectories(self)
 
         with torch.no_grad():
             next_agent_q , next_wall_q = self.target_encoder(NEXT_STATE)
@@ -328,18 +329,17 @@ class Agent_Modes_Pathfinding:
 
     def run_agent(self, unsupervised=False, encoder_updates=False):
 
-        if not self.randombuffer_only:
-            done = False
-            state = self.env_multimaze.observe()[0]
-            controllable_latent, uncontrollable_features = self.encoder(torch.as_tensor(state).unsqueeze(0).unsqueeze(0).float().to(self.device))
-            action = self.get_action(controllable_latent=controllable_latent, uncontrollable_features=uncontrollable_features)
-            reward = self.env_multimaze.step(action)
-            next_state = self.env_multimaze.observe()[0]
+        done = False
+        state = self.env_multimaze.observe()[0]
+        controllable_latent, uncontrollable_features = self.encoder(torch.as_tensor(state).unsqueeze(0).unsqueeze(0).float().to(self.device))
+        action = self.get_action(controllable_latent=controllable_latent, uncontrollable_features=uncontrollable_features)
+        reward = self.env_multimaze.step(action)
+        next_state = self.env_multimaze.observe()[0]
 
-            if self.env_multimaze.inTerminalState():
-                self.env_multimaze.reset(1)
-                done = True
-            self.buffer.add(state, action, reward, next_state, done)
+        if self.env_multimaze.inTerminalState():
+            self.env_multimaze.reset(1)
+            done = True
+        self.buffer.add(state, action, reward, next_state, done)
 
         if unsupervised:
             self.unsupervised_learning()
@@ -547,7 +547,7 @@ class Agent_Modes_Pathfinding:
         Q = self.dqn_network(controllable_latent, uncontrollable_features)
         next_Q = self.dqn_network(next_controllable_latent, next_uncontrollable_features)
         target_actions = torch.argmax(next_Q, dim=1).unsqueeze(1)
-        # We use the target Q-network to find the 'best actions' and fill them in our original Q-network
+        # We use the target Q-network and fill in the actions from the 'original' Q-network
         target_Q = self.target_network(next_controllable_latent, next_uncontrollable_features)
         target_Q_value = target_Q.gather(1, target_actions)
         # Current timestep Q-values with the actions from the minibatch

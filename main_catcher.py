@@ -1,3 +1,4 @@
+# Python script by Jacob Kooi
 import os
 import numpy as np
 from environments.catcher_env import Catcher
@@ -6,6 +7,10 @@ from utils import get_run_directory_catcher, strtobool, check_run_directory, fil
 import argparse
 from print_functions import print_featuremaps_halfagent_halfball
 
+if os.path.isdir(os.getcwd() + '/runs'):
+    pass
+else:
+    os.mkdir(os.getcwd() + '/runs')
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -56,6 +61,7 @@ fill_buffer(agent.buffer, 25000, env)
 for i in range(args.iterations + 500):
     if agent.iterations % args.interval_iterations == 0:
         print_featuremaps_halfagent_halfball(agent, args=args, run_directory=run_directory,
-                                                 width_inches=5, h_inches=10, extra_name='adversarial' if agent.adversarial else 'normal')
-
+                                                 width_inches=5, h_inches=10,
+                                             extra_name='adversarial' if agent.adversarial else 'normal')
+    # Train for an iteration
     agent.mlp_learn()

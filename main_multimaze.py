@@ -1,4 +1,4 @@
-# Python script by Jacob Kooi - Finding a controllable latent space
+# Python script by Jacob Kooi
 import torch
 from print_functions import print_graph_with_same_agent_states
 from agents.unsupervised_agent_multimaze import Agent_Multimaze_Pathfinding
@@ -8,6 +8,11 @@ import numpy as np
 import argparse
 from environments.maze_env import Maze
 import os
+
+if os.path.isdir(os.getcwd() + '/runs'):
+    pass
+else:
+    os.mkdir(os.getcwd() + '/runs')
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--run_description', type=str, required=True)
@@ -35,6 +40,7 @@ parser.add_argument('--interval_iterations', type=int, default=5000)
 parser.add_argument('--run_directory', type=str, default='')
 args = parser.parse_args()
 
+# Create run directory
 project_directory = os.getcwd() + '/runs'
 folder_directory = project_directory +'/'+ args.run_description
 folder_directory = check_run_directory(run_directory=folder_directory)

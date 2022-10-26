@@ -26,7 +26,7 @@ class Maze(Environment):
 
         self.action_space = np.ones(1)
 
-        self._n_walls = int((self._size_maze - 2) ** 2 / 3.)  # int((self._size_maze)**2/3.)
+        self._n_walls = int((self._size_maze - 2) ** 2 / 3.)
         if self.map_type == 'path_finding':
             self._n_walls =10
         self._n_rewards = 3
@@ -76,7 +76,6 @@ class Maze(Environment):
 
                 for loc in wall_locations:
                     self._pos_walls.append(loc)
-                # self._pos_rewards.append([6, 6])
 
             if self.map_type == 'simple_map2':
                 wall_locations = [[4, 1], [4, 2], [4, 3], [4, 5], [4, 6]]
@@ -84,7 +83,6 @@ class Maze(Environment):
 
                 for loc in wall_locations:
                     self._pos_walls.append(loc)
-                # self._pos_rewards.append([6, 6])
 
             if self.map_type == 'simple_map3':
                 wall_locations = [[4, 1], [4, 2], [4, 3], [4, 5], [4, 6], [3, 1], [3, 2], [3, 3], [3, 5], [3, 6]]
@@ -99,10 +97,7 @@ class Maze(Environment):
 
                 for loc in wall_locations:
                     self._pos_walls.append(loc)
-                # self._pos_rewards.append([6, 6])
 
-            # if self.map_type == 'no_walls':
-            #     self._pos_rewards.append([])
             if (self.map_type =='random') or (self.map_type == 'random_with_rewards'):
                 n = 0
                 self._pos_agent = [np.random.randint(1, self._size_maze -2), np.random.randint(1, self._size_maze -2)]
@@ -255,10 +250,7 @@ class Maze(Environment):
             for i in indices_agent:
                 self._map[i[0] * 6:(i[0] + 1) * 6:, i[1] * 6:(i[1] + 1) * 6] = agent_obs
             self._map = (self._map * 2) - 1  # scaling
-            # print ("self._map higher_dim_obs")
-            # print (self._map)
-            # plt.imshow(self._map, cmap='gray_r')
-            # plt.show()
+
         else:
             self._map = self._map / 2.
             self._map[self._map == 0.5] = 0.99  # agent

@@ -4,14 +4,16 @@ from print_functions import print_graph_with_same_agent_states
 import torch
 import matplotlib.pyplot as plt
 import numpy as np
-from torch.utils.tensorboard import SummaryWriter
 from agents.unsupervised_agent_multimaze_modes import Agent_Modes_Pathfinding
 import time
 import argparse
 from environments.maze_env import Maze
 import os
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+if os.path.isdir(os.getcwd() + '/runs'):
+    pass
+else:
+    os.mkdir(os.getcwd() + '/runs')
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -26,6 +28,7 @@ if __name__ == "__main__":
     parser.add_argument('--lr_discount', type=float, default=5e-5)
     parser.add_argument('--breadth', type=int, default=3)
     parser.add_argument('--batch_size', type=int, default=32)
+    parser.add_argument('--entropy_pixels', type=int, default=15)
     parser.add_argument('--sa_scaler', type=int, default=16)
     parser.add_argument('--s_scaler', type=int, default=4)
     parser.add_argument('--rd_scaler', type=int, default=2)
@@ -71,7 +74,7 @@ for s in range(args.seeds):
     env_multimaze = Maze(rng, higher_dim_obs=True, map_type='path_finding', maze_size=8, random_start=True)
     env_multimaze.create_map()
 
-    # Create the agent   For now, Adam seems to work best with contr.dim =2, lr=0.5e-3. For higher dim: lr = 0.5e-2
+    # Create the agent
     agent = Agent_Modes_Pathfinding(env_multimaze, args=args)
 
     # Make the directory specific for this environment and set of hyperparameters
@@ -172,7 +175,7 @@ for s in range(args.seeds):
             agent.run_agent(unsupervised=False, encoder_updates=True)
             agent.iterations += 1
             if j != 0 and j % 10000 == 0:
-                print_graph_with_same_agent_states(agent, agent.encoder, agent.states_same_agent, blue_ordered=True, transitions=False)
+                print_graph_with_same_agent_states(agent, args=args, run_directory=run_directory, blue_ordered=True, transitions=False)
                 torch.save(agent.encoder.state_dict(), run_directory + '/encoder.pt')  # Save the encoder for transfer learning
                 torch.save(agent.agent_forward_state_action.state_dict(), run_directory + '/forward_predictor.pt')
                 reward['%s' % s].append(to_numpy(agent.output['average_reward']))

@@ -1,4 +1,4 @@
-# Python script by Jacob Kooi - Finding a controllable latent space
+# Python script by Jacob Kooi
 import os
 from environments.maze_env import Maze
 from agents.unsupervised_agent_fourmaze import Agent_Fourmaze
@@ -7,6 +7,12 @@ import numpy as np
 import time
 import argparse
 from print_functions import print_graph_with_all_states_and_transitions_3D_fourmaze
+
+if os.path.isdir(os.getcwd() + '/runs'):
+    pass
+else:
+    os.mkdir(os.getcwd() + '/runs')
+
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--run_description', type=str, required=True)
@@ -49,7 +55,7 @@ env2.create_map()
 env3.create_map()
 env4.create_map()
 
-# Create the agent   For now, Adam seems to work best with contr.dim =2, lr=0.5e-3. For higher dim: lr = 0.5e-2
+# Create the agent
 agent = Agent_Fourmaze(env1, env2, env3, env4, args=args)
 
 # Fill the replay buffer with an equal amount of samples from the four mazes
@@ -71,6 +77,6 @@ for i in range(args.iterations + 500):
                                                                 agent.every_state_env2, agent.every_state_env3,
                                                                 agent.every_state_env4, delta=agent.prediction_delta,
                                                                 args=args, run_directory=run_directory)
-    # Train the agent for 1 iteration
+    # Train the agent for an iteration
     agent.mlp_learn()
 

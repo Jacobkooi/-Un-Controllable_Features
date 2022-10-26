@@ -48,12 +48,14 @@ class Agent_Catcher:
 
         self.encoder = EncoderDMC_half_features_catcher(1, self.agent_dim, neuron_dim=args.neuron_dim).to(self.device)
 
-        test_state, test_feature = self.encoder(torch.from_numpy(env.observe()[0]).to(self.device).unsqueeze(0).unsqueeze(0).float())
+        test_state, test_feature = self.encoder(torch.from_numpy(env.observe()[0]).to(self.device).
+                                                unsqueeze(0).unsqueeze(0).float())
         self.ball_dim = int(len(test_feature[0][0].flatten(0)))
         self.ball_grid = np.sqrt(self.ball_dim)
 
         # Mlp Forward Prediction Functions
-        self.agent_forward_state_action = TransitionModel(self.agent_dim + self.ball_dim, action_dim=self.action_dim, scale=self.agent_transition_scaler,
+        self.agent_forward_state_action = TransitionModel(self.agent_dim + self.ball_dim, action_dim=self.action_dim,
+                                                          scale=self.agent_transition_scaler,
                                                                prediction_dim=self.agent_dim).to(self.device)
         self.wall_stationary_forward_state = TransitionModel(self.ball_dim, action_dim=0, scale=self.agent_transition_scaler,
                                                              prediction_dim=self.ball_dim).to(self.device)
@@ -67,7 +69,8 @@ class Agent_Catcher:
         if self.adversarial:
             self.adversarial_predictor_optimizer = torch.optim.Adam(self.adversarial_predictor.parameters(), self.lr_adv)
         # Replay Buffer
-        self.buffer = ReplayBuffer(self.env.observe()[0].shape, env.action_space.shape[0], capacity=int(1e6) , device=self.device)
+        self.buffer = ReplayBuffer(self.env.observe()[0].shape, env.action_space.shape[0],
+                                   capacity=int(1e6), device=self.device)
 
     def mlp_learn(self):
 
@@ -99,7 +102,9 @@ class Agent_Catcher:
         next_ball_features = next_ball_features.flatten(1)
 
         # Forward prediction state + action
-        state_action_prediction = self.agent_forward_state_action(torch.cat((detached_agent_state, (detached_ball_features if self.detach_wall else ball_features), ACTION), 1))
+        state_action_prediction = self.agent_forward_state_action(torch.cat((detached_agent_state,
+                                                                             (detached_ball_features if self.detach_wall
+                                                                              else ball_features), ACTION), 1))
 
         # Forward prediction state
         state_prediction_ball = self.wall_stationary_forward_state(ball_features)
