@@ -123,7 +123,7 @@ class Agent_Catcher:
         loss_ball_predictor = nn.MSELoss()(state_prediction_ball, next_ball_features)
 
         # Entropy loss to avoid representation collapse
-        loss_entropy = compute_entropy_loss_featuremaps_randompixels(self, STATE)
+        loss_entropy = compute_entropy_loss_featuremaps_randompixels(self)
 
         # The loss function
         loss = loss_entropy + loss_state_action + loss_ball_predictor

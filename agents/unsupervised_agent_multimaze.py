@@ -5,7 +5,7 @@ from environments.maze_env import Maze
 from networks import EncoderDMC_8x8wall, TransitionModel
 from utils import get_same_agent_states, to_numpy
 from replaybuffer import ReplayBuffer
-from losses import compute_entropy_loss_featuremaps_randompixels, compute_entropy_loss_trajectory, compute_entropy_loss_subsequent_states
+from losses import compute_entropy_loss_featuremaps_randompixels, compute_entropy_loss_single_trajectory, compute_entropy_loss_multiple_trajectories
 import numpy as np
 
 
@@ -138,12 +138,11 @@ class Agent_Multimaze_Pathfinding:
         loss_wall_predictor = self.loss(state_prediction_wall, next_wall_features_flattened)
 
         # Entropy loss to avoid representation collapse
-        loss_entropy = compute_entropy_loss_featuremaps_randompixels(self, STATE)
-        loss_entropy += compute_entropy_loss_trajectory(self)
-        # loss_entropy += compute_entropy_loss_subsequent_states(self, STATE, NEXT_STATE)
+        loss_entropy = 0.5*compute_entropy_loss_featuremaps_randompixels(self)
+        loss_entropy += 0.5*compute_entropy_loss_multiple_trajectories(self)
 
         # The loss function
-        loss = loss_entropy + loss_wall_predictor + loss_state_action #  2*loss_state_action
+        loss = loss_entropy + loss_wall_predictor + loss_state_action
 
         # Backprop the loss
         loss.backward()

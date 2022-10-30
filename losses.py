@@ -1,6 +1,7 @@
 import torch
 import numpy as np
 import random
+import torch.nn.functional as F
 
 
 def compute_entropy_loss(agent):
@@ -16,7 +17,7 @@ def compute_entropy_loss(agent):
     return loss
 
 
-def compute_entropy_loss_featuremaps_randompixels(agent, STATE):
+def compute_entropy_loss_featuremaps_randompixels(agent):
 
     STATE, ACTION, REWARD, NEXT_STATE, DONE = agent.buffer.sample(agent.batch_size)
 
@@ -36,15 +37,37 @@ def compute_entropy_loss_featuremaps_randompixels(agent, STATE):
     return loss
 
 
-def compute_entropy_loss_trajectory(agent):
+def compute_entropy_loss_single_trajectory(agent):
 
-    trajectory = agent.buffer.sample_trajectory()[0]
+    trajectory = agent.buffer.sample_trajectory()[0]   # gets a tuple of states and features, so need to take the 0-th entry
+    trajectory = trajectory
     encoded_trajectory = agent.encoder(trajectory)[0]
-
     # Roll the states uniformly random so we eventually get all combinations
     encoded_trajectory_rolled = torch.roll(encoded_trajectory, np.random.randint(low=1, high=len(encoded_trajectory-1)), dims=0)
 
     loss = torch.exp(-agent.entropy_scaler * torch.norm(encoded_trajectory_rolled - encoded_trajectory, dim=1, p=2)).mean()
+
+    return loss
+
+
+def compute_DQN_loss_Hasselt(agent, controllable_latent, uncontrollable_features, actions, rewards,
+                   next_controllable_latent, next_uncontrollable_features, dones):
+
+    # Change actions to long format for the gather function
+    actions = actions.long()
+    if agent.onehot:
+        actions = torch.argmax(actions, dim=1).unsqueeze(1)
+    # Compute the Q-value estimates corresponding to the actions in the batch
+    Q = agent.dqn_network(controllable_latent, uncontrollable_features)
+    next_Q = agent.dqn_network(next_controllable_latent, next_uncontrollable_features)
+    target_actions = torch.argmax(next_Q, dim=1).unsqueeze(1)
+    # We use the target Q-network and fill in the actions from the 'original' Q-network
+    target_Q = agent.target_network(next_controllable_latent, next_uncontrollable_features)
+    target_Q_value = target_Q.gather(1, target_actions)
+    # Current timestep Q-values with the actions from the minibatch
+    Q = Q.gather(1, actions)
+    Q_target = rewards + (1 - dones.int()) * agent.gamma * target_Q_value
+    loss = F.mse_loss(Q, Q_target.detach())
 
     return loss
 
@@ -82,15 +105,5 @@ def compute_entropy_loss_multiple_trajectories(agent):
 
     return 0.25*(loss1 + loss2 + loss3 + loss4)
 
-
-def compute_entropy_loss_subsequent_states(agent, STATE, NEXT_STATE):
-
-    random_states_agent, _ = agent.encoder(STATE)
-    next_random_states_agent, _ = agent.encoder(NEXT_STATE)
-
-    difference_states = next_random_states_agent - random_states_agent
-    loss = torch.exp(-agent.entropy_scaler * torch.norm(difference_states, dim=1, p=2)).mean()
-
-    return loss
-
-
+#         loss_entropy = 0.5*compute_entropy_loss_featuremaps_randompixels(self)
+#         loss_entropy += 0.5*compute_entropy_loss_multiple_trajectories(self)

@@ -14,8 +14,8 @@ else:
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--run_description', type=str, required=True)
-    parser.add_argument('--iterations', type=int, required=True)
+    parser.add_argument('--run_description', type=str, default='test_catcher')
+    parser.add_argument('--iterations', type=int, default=200000)
     parser.add_argument('--agent_dim', type=int, default=1)
     parser.add_argument('--lr_encoder', type=float, default=2e-5)
     parser.add_argument('--lr_sa', type=float, default=4e-5)

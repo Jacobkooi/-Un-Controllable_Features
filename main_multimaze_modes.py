@@ -17,8 +17,8 @@ else:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--run_description', type=str, required=True)
-    parser.add_argument('--iterations', type=int, required=True)
+    parser.add_argument('--run_description', type=str, default='test_multimaze_modes')
+    parser.add_argument('--iterations', type=int, default='500000')
     parser.add_argument('--random_samples', type=int, default=50000)
     parser.add_argument('--neuron_dim', type=int, default=200)
     parser.add_argument('--lr_dqn', type=float, default=4e-5)
@@ -33,7 +33,7 @@ if __name__ == "__main__":
     parser.add_argument('--s_scaler', type=int, default=4)
     parser.add_argument('--rd_scaler', type=int, default=2)
     parser.add_argument('--dqn_scaler', type=int, default=16)
-    parser.add_argument('--entropy_scaler', type=int, default=13)
+    parser.add_argument('--entropy_scaler', type=int, default=10)
     parser.add_argument('--format', type=str, default='png')
     parser.add_argument('--q_loss', type=strtobool, default=False)
     parser.add_argument('--tau', type=float, default=0.02)
@@ -90,6 +90,7 @@ for s in range(args.seeds):
 
         # Fill the replay buffer
         fill_buffer(agent.buffer, args.random_samples, agent.env_multimaze)
+
         # visualize_buffer_batch(agent)
 
         for i in range(args.pretrain_iterations+1):
@@ -111,6 +112,8 @@ for s in range(args.seeds):
             agent.train_predictor()
             if j != 0 and j % 10000 == 0:
                 print_graph_with_same_agent_states(agent, args=args, run_directory=run_directory)
+                torch.save(agent.encoder.state_dict(), run_directory + '/encoder.pt')
+                torch.save(agent.agent_forward_state_action.state_dict(), run_directory + '/forward_predictor.pt')
                 reward['%s' % s].append(to_numpy(agent.output['average_reward']))
                 iterations['%s' % s].append(j)
                 if agent.output['average_reward'] >= lowest_reward:

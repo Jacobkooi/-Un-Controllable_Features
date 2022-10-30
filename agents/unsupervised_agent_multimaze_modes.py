@@ -7,7 +7,7 @@ from utils import get_same_agent_states, to_numpy
 from replaybuffer import ReplayBuffer
 import torch.nn as nn
 import torch.nn.functional as F
-from losses import compute_entropy_loss_featuremaps_randompixels, compute_entropy_loss_trajectory, compute_entropy_loss_multiple_trajectories
+from losses import compute_entropy_loss_featuremaps_randompixels, compute_DQN_loss_Hasselt, compute_entropy_loss_single_trajectory, compute_entropy_loss_multiple_trajectories
 
 
 class Agent_Modes_Pathfinding:
@@ -70,8 +70,8 @@ class Agent_Modes_Pathfinding:
         self.prediction_delta = args.delta
 
         # Encoders
-        self.encoder = EncoderDMC_8x8wall(obs_channels=1, latent_dim=2).to(self.device)
-        self.target_encoder = EncoderDMC_8x8wall(obs_channels=1, latent_dim=2).to(self.device)
+        self.encoder = EncoderDMC_8x8wall(obs_channels=1, latent_dim=2, neuron_dim=args.neuron_dim).to(self.device)
+        self.target_encoder = EncoderDMC_8x8wall(obs_channels=1, latent_dim=2, neuron_dim=args.neuron_dim).to(self.device)
         self.target_encoder.load_state_dict(self.encoder.state_dict())
 
         self.wall_dim = self.encoder.wall_size
@@ -155,15 +155,15 @@ class Agent_Modes_Pathfinding:
         loss_wall_predictor = self.loss(state_prediction_wall, next_wall_features_flattened)
 
         # Entropy loss to avoid representation collapse
-        loss_entropy = 0.5*compute_entropy_loss_featuremaps_randompixels(self, STATE)
-        # loss_entropy += 0.5*compute_entropy_loss_trajectory(self)
+        loss_entropy = 0.5*compute_entropy_loss_featuremaps_randompixels(self)
         loss_entropy += 0.5*compute_entropy_loss_multiple_trajectories(self)
+        # loss_entropy += compute_entropy_loss_single_trajectory(self)
 
         with torch.no_grad():
             next_agent_q , next_wall_q = self.target_encoder(NEXT_STATE)
 
         if self.q_loss:
-            q_loss = self.compute_DQN_loss_Hasselt(agent_latent, wall_features, ACTION,
+            q_loss = compute_DQN_loss_Hasselt(self, agent_latent, wall_features, ACTION,
                                            REWARD, next_agent_q,
                                            next_wall_q, DONE)
         # The loss function
@@ -288,7 +288,7 @@ class Agent_Modes_Pathfinding:
 
         # next_agent_latent, next_wall_features = self.encoder(NEXT_STATE)
 
-        q_loss = self.compute_DQN_loss_Hasselt(agent_latent, wall_features, ACTION,
+        q_loss = compute_DQN_loss_Hasselt(self, agent_latent, wall_features, ACTION,
                                        REWARD, next_agent_latent,
                                        next_wall_features, DONE)
 
@@ -413,7 +413,7 @@ class Agent_Modes_Pathfinding:
         detached_agent_latent = agent_latent.clone().detach()
         detached_wall_flattened = wall_flattened.clone().detach()
 
-        # Next latents (Z_t+1), from either an EMA target encoder or the actual encoder
+        # Next latents (Z_t+1)
         next_agent_latent, next_wall_features= self.encoder(NEXT_STATE)
         next_wall_features_flattened = next_wall_features.flatten(1)
 
@@ -429,14 +429,14 @@ class Agent_Modes_Pathfinding:
         loss_wall_predictor = self.loss(state_prediction_wall, next_wall_features_flattened)
 
         # Entropy loss to avoid representation collapse
-        loss_entropy = compute_entropy_loss_featuremaps_randompixels(self, STATE)
-        loss_entropy += compute_entropy_loss_trajectory(self)   # TODO Watch out with the 0.5
+        loss_entropy = 0.5*compute_entropy_loss_featuremaps_randompixels(self)
+        loss_entropy += 0.5*compute_entropy_loss_multiple_trajectories(self)
 
         with torch.no_grad():
             next_agent_q , next_wall_q = self.target_encoder(NEXT_STATE)
 
         if self.q_loss:
-            q_loss = self.compute_DQN_loss_Hasselt(agent_latent, wall_features, ACTION,
+            q_loss = compute_DQN_loss_Hasselt(self, agent_latent, wall_features, ACTION,
                                            REWARD, next_agent_q,
                                            next_wall_q, DONE)
         # The loss function
@@ -458,9 +458,6 @@ class Agent_Modes_Pathfinding:
             target_param.data.copy_(self.tau * param + (1 - self.tau) * target_param)
         for target_param, param in zip(self.target_encoder.parameters(), self.encoder.parameters()):
             target_param.data.copy_(self.tau * param + (1 - self.tau) * target_param)
-        # if self.iterations !=0 and self.iterations %50 ==0:
-        #     self.target_network.load_state_dict(self.dqn_network.state_dict())
-        #     self.target_encoder.load_state_dict(self.encoder.state_dict())
 
         # Print the losses and predictions every 500 iterations
         if self.iterations % 500 == 0:
@@ -472,9 +469,7 @@ class Agent_Modes_Pathfinding:
             print(' The wall prediction LOSS is: ', to_numpy(loss_wall_predictor))
             if self.q_loss:
                 print(' The Q-LOSS is', to_numpy(q_loss))
-            # print(' The reward prediction LOSS is', to_numpy(loss_reward_predictor))
 
-        # self.output['reward_loss'] = loss_reward_predictor
         self.output['inverse_loss'] = loss_inverse_prediction
         self.output['uncontrollable_loss'] = loss_wall_predictor
         self.output['entropy_loss'] = loss_entropy
@@ -485,6 +480,8 @@ class Agent_Modes_Pathfinding:
         self.iterations += 1
 
     def get_action_with_planning_d3_correct(self, controllable_latent, uncontrollable_features):
+        
+        # Basic planning algorithm. Not the fastest, but easy to debug.
 
         static_features = uncontrollable_features
         preferred_action = 0
@@ -527,32 +524,8 @@ class Agent_Modes_Pathfinding:
                         Q_d0 = q_vals1[0][torch.argmax(action1)]
                         Value = Q_d0 + Q_d1 + Q_d2 + Q_d3
 
-                        # if self.iterations >= 80000:
-                        #     print_graph_planning_current_latent_multimaze_d3(self, controllable_latent, State1, State2, State3, uncontrollable_features)
-
                         if Value >= highest_cumulative_Q:
                             highest_cumulative_Q = Value
                             preferred_action = action1
 
             return torch.argmax(preferred_action).cpu()
-
-    def compute_DQN_loss_Hasselt(self, controllable_latent, uncontrollable_features, actions, rewards,
-                       next_controllable_latent, next_uncontrollable_features, dones):
-
-        # Change actions to long format for the gather function
-        actions = actions.long()
-        if self.onehot:
-            actions = torch.argmax(actions, dim=1).unsqueeze(1)
-        # Compute the Q-value estimates corresponding to the actions in the batch
-        Q = self.dqn_network(controllable_latent, uncontrollable_features)
-        next_Q = self.dqn_network(next_controllable_latent, next_uncontrollable_features)
-        target_actions = torch.argmax(next_Q, dim=1).unsqueeze(1)
-        # We use the target Q-network and fill in the actions from the 'original' Q-network
-        target_Q = self.target_network(next_controllable_latent, next_uncontrollable_features)
-        target_Q_value = target_Q.gather(1, target_actions)
-        # Current timestep Q-values with the actions from the minibatch
-        Q = Q.gather(1, actions)
-        Q_target = rewards + (1 - dones.int()) * self.gamma * target_Q_value
-        loss = F.mse_loss(Q, Q_target.detach())
-
-        return loss

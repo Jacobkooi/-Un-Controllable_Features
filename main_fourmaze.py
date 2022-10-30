@@ -15,8 +15,8 @@ else:
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--run_description', type=str, required=True)
-parser.add_argument('--iterations', type=int, required=True)
+parser.add_argument('--run_description', type=str, default='test_fourmaze')
+parser.add_argument('--iterations', type=int, default=50000)
 parser.add_argument('--agent_dim', type=int, default=2)
 parser.add_argument('--wall_dim', type=int, default=1)
 parser.add_argument('--batch_size', type=int, default=32)
@@ -80,3 +80,5 @@ for i in range(args.iterations + 500):
     # Train the agent for an iteration
     agent.mlp_learn()
 
+
+#TODO GitHub Token: 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
