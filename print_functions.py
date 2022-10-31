@@ -443,9 +443,9 @@ def print_featuremaps_halfagent_halfball(agent, args=None, run_directory=str, wi
         plt.show()
     else:
         if args.format == 'png':
-            plt.savefig(str(run_directory)+'/different_ball_states'+str(agent.iterations)+extra_name+'_iterations.png', bbox_inches='tight')
+            plt.savefig(str(run_directory)+'/different_catcher_states'+str(agent.iterations)+extra_name+'_iterations.png', bbox_inches='tight')
         elif args.format=='pdf':
-            plt.savefig(str(run_directory)+'/different_ball_states'+str(agent.iterations)+extra_name+'_iterations.pdf', bbox_inches='tight')
+            plt.savefig(str(run_directory)+'/different_catcher_states'+str(agent.iterations)+extra_name+'_iterations.pdf', bbox_inches='tight')
         plt.close()
 
 
