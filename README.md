@@ -58,5 +58,5 @@ python3 main_catcher.py --run_description test_catcher_2_states_adversarial --it
 To train an encoder and forward predictor for the Random Maze environment, run:
 
 ```bash
-python3 main_multimaze.py --run_description test_multimaze --iterations 250000 --entropy_scaler 13
+python3 main_multimaze.py --run_description test_multimaze --iterations 250000 --entropy_scaler 8
 ```
