@@ -75,3 +75,9 @@ trains DDQN on a representation using the saved encoder and forward predictor se
 
 ![Saved Representation](saved_representation.png)
 
+**Contact**
+
+For any questions, comments or general contact feel free to send an email to *j.e.kooi@vu.nl*!
+
+
+
