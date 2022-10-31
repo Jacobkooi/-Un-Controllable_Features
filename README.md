@@ -60,3 +60,15 @@ To train an encoder and forward predictor for the Random Maze environment, run:
 ```bash
 python3 main_multimaze.py --run_description test_multimaze --iterations 250000 --entropy_scaler 8
 ```
+
+**Procedural Generated Maze environment + Reinforcement Learning**
+
+You can train a representation and apply reinforcement learning on it afterwards. You can also use the pretrained encoder and forward predictor saved in the directory *saved_models*. The training setting can be specified with the --mode argument. For instance:
+```bash
+python3 main_multimaze_modes.py --run_description test_DDQN_Only --iterations 500500 --mode dqn_only
+```
+trains a representation end-to-end using only a reinforcement learning agent, and 
+```bash
+python3 main_multimaze_modes.py --run_description test_DDQN_Only --iterations 500500 --mode pretrain_saved_model
+```
+trains DDQN on a representation using the saved encoder and forward predictor seen in the figure below.
