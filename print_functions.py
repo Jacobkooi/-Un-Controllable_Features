@@ -583,8 +583,8 @@ def print_graph_with_all_states_and_transitions_3D_fourmaze(agent, device, encod
         plt.show()
     else:
         if args.format =='png':
-            plt.savefig(str(run_directory)+'/different_ball_states'+str(agent.iterations)+'_iterations.png')
+            plt.savefig(str(run_directory)+'/fourmaze'+str(agent.iterations)+'_iterations.png')
         elif args.format =='pdf':
-            plt.savefig(str(run_directory)+'/different_ball_states'+str(agent.iterations)+'_iterations.pdf')
+            plt.savefig(str(run_directory)+'/fourmaze'+str(agent.iterations)+'_iterations.pdf')
 
         plt.close()
