@@ -33,7 +33,7 @@ pip install argparse    # Argparse 1.4.0
 
 To train an encoder and forward predictor for the Four Mazes environment, run:
 ```bash
-python3 main_fourmazy.py --run_description test_fourmaze --iterations 50000
+python3 main_fourmaze.py --run_description test_fourmaze --iterations 50000
 ```
 
 
