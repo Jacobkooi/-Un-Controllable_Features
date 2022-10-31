@@ -72,3 +72,6 @@ trains a representation end-to-end using only a reinforcement learning agent, an
 python3 main_multimaze_modes.py --run_description test_DDQN_Only --iterations 500500 --mode pretrain_saved_model
 ```
 trains DDQN on a representation using the saved encoder and forward predictor seen in the figure below.
+
+![Saved Representation](saved_representation.png)
+
