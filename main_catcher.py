@@ -25,7 +25,7 @@ if __name__ == '__main__':
     parser.add_argument('--batch_size', type=int, default=32)
     parser.add_argument('--sa_scaler', type=int, default=4)
     parser.add_argument('--s_scaler', type=int, default=4)
-    parser.add_argument('--neuron_dim', type=int, default=100)
+    parser.add_argument('--neuron_dim', type=int, default=200)
     parser.add_argument('--entropy_scaler', type=int, default=5)
     parser.add_argument('--format', type=str, default='png')
     parser.add_argument('--detach_walls', type=strtobool, default=True)
