@@ -3,7 +3,7 @@ import torch
 
 
 class EncoderDMC_8x8wall(nn.Module):
-    """Convolutional encoder_C for image-based observations."""
+    """Convolutional encoder for image-based observations."""
     def __init__(self, obs_channels, latent_dim, tanh=False, scale=16, neuron_dim=100):
         super().__init__()
 
@@ -72,7 +72,7 @@ class EncoderDMC_8x8wall(nn.Module):
 
     
 class EncoderDMC_half_features_catcher(nn.Module):
-    """Convolutional encoder_C for image-based observations."""
+    """Convolutional encoder for image-based observations."""
     def __init__(self, obs_channels, latent_dim, scale=1, neuron_dim=100):
         super().__init__()
 
@@ -169,7 +169,7 @@ class TransitionModel(nn.Module):
 
 
 class DQNmodel(nn.Module):
-    """ Transition function MLP head for both w/o and w/ action"""
+    """ DQN Model"""
     def __init__(self, input_dim, scale=16, prediction_dim=4):
         super().__init__()
 
