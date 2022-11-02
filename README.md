@@ -6,7 +6,7 @@ This is the PyTorch repository for the paper :
 
 By Jacob E. Kooi, Mark Hoogendoorn and Vincent Francois-Lavet 
 
-(Link to Arxiv: --Link--)
+(Link to Arxiv: http://arxiv.org/abs/2211.00086)
 
 
 ![Four Mazes](Github.png)
@@ -16,7 +16,17 @@ By Jacob E. Kooi, Mark Hoogendoorn and Vincent Francois-Lavet
 If you are using this code or are referrring to our work, please cite the following bibtex: 
 
 ```
-(--Bibtex--)
+@misc{https://doi.org/10.48550/arxiv.2211.00086,
+  doi = {10.48550/ARXIV.2211.00086},
+  url = {https://arxiv.org/abs/2211.00086},
+  author = {Kooi, Jacob E. and Hoogendoorn, Mark and François-Lavet, Vincent},
+  keywords = {Machine Learning (cs.LG), Artificial Intelligence (cs.AI), FOS: Computer and information sciences, FOS: Computer and information sciences},
+  title = {Disentangled (Un)Controllable Features},
+  publisher = {arXiv},
+  year = {2022},
+  copyright = {Creative Commons Attribution 4.0 International}
+}
+
 ```
 
 **Requirements**
